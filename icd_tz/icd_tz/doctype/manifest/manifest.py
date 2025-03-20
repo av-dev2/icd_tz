@@ -84,6 +84,7 @@ class Manifest(Document):
             return False
     
     def update_container_details(self, containers_sheet):
+
         self.containers = []
         for row in containers_sheet.iter_rows(min_row=4, values_only=True):
             container = self.append("containers", {})
@@ -106,6 +107,7 @@ class Manifest(Document):
             container.maximum_temperature = row[14]
 
     def update_hbl_containers(self, hbl_containers_sheet):
+
         self.hbl_containers = []
         for row in hbl_containers_sheet.iter_rows(min_row=4, values_only=True):
             hbicontainer = self.append("hbl_containers", {})
@@ -175,6 +177,7 @@ class Manifest(Document):
             master_bl.net_weight_unit = row[40]
 
     def update_house_bl_details(self, house_bl_sheet):
+
         self.house_bl = []
         for row in house_bl_sheet.iter_rows(min_row=4, values_only=True):
             house_bl = self.append("house_bl", {})

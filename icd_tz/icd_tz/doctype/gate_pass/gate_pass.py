@@ -12,9 +12,14 @@ class GatePass(Document):
 		validate_cf_agent(self)
 	
 	def before_submit(self):
+
 		# self.validate_container_charges()
 		# self.validate_in_yard_booking()
 		# self.validate_reception_charges()
+
+		self.validate_container_charges()
+		self.validate_in_yard_booking()
+		self.validate_reception_charges()
 		self.validate_mandatory_fields()
 		self.update_submitted_info()
 	
@@ -112,7 +117,7 @@ class GatePass(Document):
 	
 	def validate_mandatory_fields(self):
 		fields_str = ""
-		fields = ["transporter", "truck", "trailer", "driver", "license_no"]
+		fields = ["transporter", "truck", "trailer", "driver_name", "license_no"]
 		for field in fields:
 			if not self.get(field):
 				fields_str += f"{self.meta.get_label(field)}, "
