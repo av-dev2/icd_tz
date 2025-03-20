@@ -16,8 +16,8 @@ def get_columns():
         {"label": "M B/L Number", "fieldname": "bl_no", "fieldtype": "Data", "width": 150},
         {"label": "Container No", "fieldname": "container_no", "fieldtype": "Data", "width": 150},
         {"label": "Size", "fieldname": "size", "fieldtype": "Data", "width": 100},
-        {"label": "Discharged Date", "fieldname": "arrival_date", "fieldtype": "Date", "width": 120},
-        {"label": "Carry In Date", "fieldname": "carry_in_date", "fieldtype": "Date", "width": 120},
+        {"label": "Carry Out Date", "fieldname": "posting_datetime", "fieldtype": "Date", "width": 120},
+        {"label": "Carry In Date", "fieldname": "received_date", "fieldtype": "Date", "width": 120},
         {"label": "Stripped Date", "fieldname": "last_inspection_date", "fieldtype": "Date", "width": 120}
     ]
 
@@ -37,11 +37,12 @@ def get_data(filters):
         SELECT 
             g.bl_no,
             g.container_no,
-            g.size,
-            g.arrival_date,
+            c.size,
+            g.posting_datetime,
+            c.received_date,
             g.submitted_date,
             c.last_inspection_date
-        FROM `tabGate Pass` g
+        FROM `tabContainer Inspection` g
         JOIN `tabContainer` c ON g.container_id = c.name
         WHERE 1=1
     """
