@@ -7,6 +7,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "icd_code",
   "default_price_list",
   "column_break_8yjq8",
   "enable_signature_validation",
@@ -22,6 +23,14 @@
   "example"
  ],
  "fields": [
+  {
+   "description": "Only cargo whose Place of Delivery in the Master BL sheet matches this code will be imported from the manifest file.",
+   "fieldname": "icd_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "ICD Code",
+   "reqd": 1
+  },
   {
    "default": "Standard Selling",
    "fieldname": "default_price_list",
@@ -102,7 +111,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-09-14 15:12:14.287641",
+ "modified": "2026-07-06 12:26:00.096156",
  "modified_by": "Administrator",
  "module": "Icd Tz",
  "name": "ICD TZ Settings",
