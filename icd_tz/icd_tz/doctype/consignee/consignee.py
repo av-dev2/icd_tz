@@ -5,6 +5,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import create_batch
 
+from icd_tz.icd_tz.api.utils import get_default_customer_group
+
 
 class Consignee(Document):
 	pass
@@ -38,7 +40,7 @@ def create_customer_from_consignee(consignee):
 		{
 			"doctype": "Customer",
 			"customer_name": consignee.consignee_name,
-			"customer_group": "All Customer Groups",
+			"customer_group": get_default_customer_group(),
 			"territory": "All Territories",
 			"customer_type": "Company",
 			"mobile_no": consignee.consignee_tel,
