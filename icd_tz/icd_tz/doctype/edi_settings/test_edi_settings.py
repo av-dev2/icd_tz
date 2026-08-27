@@ -2,10 +2,10 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestEDISettings(FrappeTestCase):
+class TestEDISettings(IntegrationTestCase):
 	def test_edi_settings_single_is_loadable(self):
 		settings = frappe.get_single("EDI Settings")
 		self.assertEqual(settings.doctype, "EDI Settings")
