@@ -116,3 +116,11 @@ def submit_doc(doc_type, doc_name):
 	doc.submit()
 
 	return True
+
+
+def get_default_customer_group():
+	""" "All Customer Groups" is always a group node, ERPNext rejects it as a Customer's group"""
+
+	return frappe.db.get_single_value("Selling Settings", "customer_group") or frappe.db.get_value(
+		"Customer Group", {"is_group": 0}, "name"
+	)
