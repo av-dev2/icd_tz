@@ -3,7 +3,7 @@
 
 import frappe
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 from icd_tz.icd_tz.doctype.waiver_request.waiver_request import (
 	apply_approved_waiver,
@@ -12,10 +12,10 @@ from icd_tz.icd_tz.doctype.waiver_request.waiver_request import (
 	get_items,
 )
 
-test_dependencies = ["Item", "Customer"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "Customer"]
 
 
-class TestWaiverRequest(FrappeTestCase):
+class TestWaiverRequest(IntegrationTestCase):
 	def setUp(self):
 		self.sales_order = make_test_sales_order()
 
