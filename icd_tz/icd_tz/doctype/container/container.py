@@ -144,7 +144,7 @@ class Container(Document):
 			self.append(
 				"container_dates",
 				{
-					"date": self.recieved_date,
+					"date": self.received_date,
 				},
 			)
 
@@ -280,7 +280,7 @@ class Container(Document):
 			self.append(
 				"container_dates",
 				{
-					"date": self.recieved_date,
+					"date": self.received_date,
 				},
 			)
 
