@@ -4,6 +4,7 @@ app_publisher = "elius mgani"
 app_description = "Inland Container Department (ICD) customization based on Tanzania"
 app_email = "emgani@aakvatech.com"
 app_license = "MIT"
+required_apps = ["erpnext"]
 
 # Includes in <head>
 # ------------------

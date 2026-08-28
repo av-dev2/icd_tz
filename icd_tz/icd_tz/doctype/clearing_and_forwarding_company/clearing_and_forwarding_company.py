@@ -4,6 +4,8 @@
 import frappe
 from frappe.model.document import Document
 
+from icd_tz.icd_tz.api.utils import get_default_customer_group
+
 
 class ClearingandForwardingCompany(Document):
 	def create_customer(self):
@@ -12,7 +14,7 @@ class ClearingandForwardingCompany(Document):
 			{
 				"doctype": "Customer",
 				"customer_name": self.company_name,
-				"customer_group": "All Customer Groups",
+				"customer_group": get_default_customer_group(),
 				"territory": "All Territories",
 				"customer_type": "Company",
 				"mobile_no": self.phone,
