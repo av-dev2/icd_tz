@@ -23,7 +23,13 @@
   "loose_types",
   "no_of_days_for_container_storage_charges_section",
   "storage_days",
-  "example"
+  "example",
+  "edi_tab",
+  "enable_edi",
+  "default_sender_id",
+  "column_break_edi",
+  "icd_un_locode",
+  "icd_facility_code"
  ],
  "fields": [
   {
@@ -127,6 +133,43 @@
   {
    "fieldname": "column_break_ixzw",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "edi_tab",
+   "fieldtype": "Tab Break",
+   "label": "EDI"
+  },
+  {
+   "default": "0",
+   "description": "Master switch. When off, no EDI file is generated for any shipping line.",
+   "fieldname": "enable_edi",
+   "fieldtype": "Check",
+   "label": "Enable EDI"
+  },
+  {
+   "depends_on": "eval:doc.enable_edi==1",
+   "description": "Our identifier, used when a shipping line has not assigned us its own",
+   "fieldname": "default_sender_id",
+   "fieldtype": "Data",
+   "label": "Default Sender ID"
+  },
+  {
+   "fieldname": "column_break_edi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.enable_edi==1",
+   "description": "UN/LOCODE of this ICD, reported as the gate activity location, e.g. TZDAR",
+   "fieldname": "icd_un_locode",
+   "fieldtype": "Data",
+   "label": "ICD UN/LOCODE"
+  },
+  {
+   "depends_on": "eval:doc.enable_edi==1",
+   "description": "Terminal or facility code of this ICD, e.g. TZDARDSEL",
+   "fieldname": "icd_facility_code",
+   "fieldtype": "Data",
+   "label": "ICD Facility Code"
   }
  ],
  "index_web_pages_for_search": 1,
