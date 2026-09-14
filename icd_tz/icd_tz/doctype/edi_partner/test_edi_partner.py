@@ -2,14 +2,14 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 from icd_tz.icd_tz.doctype.edi_partner.edi_partner import get_partner
 
 test_ignore = ["Company", "Cost Center"]
 
 
-class TestEDIPartner(FrappeTestCase):
+class TestEDIPartner(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.set_single_value("ICD TZ Settings", "enable_edi", 1)
 		frappe.db.set_single_value("ICD TZ Settings", "default_sender_id", "TZDARDSEL")

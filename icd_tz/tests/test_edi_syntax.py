@@ -3,12 +3,12 @@
 
 from datetime import datetime
 
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 from icd_tz.icd_tz.api.edi.syntax import edifact_datetime, segment, text, whole_number
 
 
-class TestEDISyntax(FrappeTestCase):
+class TestEDISyntax(IntegrationTestCase):
 	def test_lowercase_is_raised_to_the_level_a_repertoire(self):
 		self.assertEqual(text("GTK Limited"), "GTK LIMITED")
 

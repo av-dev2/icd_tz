@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, getdate, nowdate
 
 from icd_tz.icd_tz.api.edi.codeco import attach_gate_in, attach_gate_out
@@ -14,7 +14,7 @@ CONTAINER_NO = "UACU6042588"
 M_BL_NO = "HLCUTYO250101920"
 
 
-class TestEDIMovement(FrappeTestCase):
+class TestEDIMovement(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.set_single_value("ICD TZ Settings", "received_date_threshold_hours", 48)
 		frappe.db.set_single_value("ICD TZ Settings", "enable_edi", 1)

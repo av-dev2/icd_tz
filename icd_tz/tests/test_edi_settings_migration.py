@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 from icd_tz.patches.migrate_edi_settings_to_edi_partner import (
 	carry_master_switch,
@@ -31,7 +31,7 @@ OLD_SETTINGS = {
 }
 
 
-class TestEDISettingsMigration(FrappeTestCase):
+class TestEDISettingsMigration(IntegrationTestCase):
 	def setUp(self):
 		# the site may already carry this shipping line, the rollback puts it back
 		frappe.db.delete("EDI Partner", {"shipping_line_code": "CMA"})

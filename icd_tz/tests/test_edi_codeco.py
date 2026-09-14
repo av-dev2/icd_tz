@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 from icd_tz.icd_tz.api.edi.codeco import CODECOGenerator
 from icd_tz.icd_tz.api.edi.movement import ContainerMovement
@@ -32,7 +32,7 @@ GATE_IN_DEFAULTS = {
 }
 
 
-class TestCODECO(FrappeTestCase):
+class TestCODECO(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.set_single_value("ICD TZ Settings", "enable_edi", 1)
 		frappe.db.set_single_value("ICD TZ Settings", "icd_un_locode", "TZDAR")
