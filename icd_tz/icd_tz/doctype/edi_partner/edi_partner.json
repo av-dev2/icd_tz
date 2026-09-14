@@ -1,0 +1,232 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:shipping_line_code",
+ "creation": "2026-09-14 09:00:00.000000",
+ "description": "EDI connection and identity of one shipping line, matched on the TANeSW shipping agent code",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "shipping_line_code",
+  "shipping_line_name",
+  "column_break_identity",
+  "sender_id",
+  "enable_edi",
+  "connection_section",
+  "connection_type",
+  "column_break_channel",
+  "test_connection",
+  "sftp_section",
+  "url",
+  "port",
+  "directory",
+  "column_break_sftp",
+  "ip_behind_dns",
+  "source_ip",
+  "authentication_section",
+  "user",
+  "authentication_method",
+  "column_break_auth",
+  "password",
+  "authentication_key",
+  "smtp_section",
+  "receiver_email",
+  "column_break_smtp",
+  "receiver_cc_email"
+ ],
+ "fields": [
+  {
+   "description": "Shipping agent code as it appears in the TANeSW manifest. Container records are matched on this value.",
+   "fieldname": "shipping_line_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Shipping Line Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Shipping agent name, for reference only",
+   "fieldname": "shipping_line_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Shipping Line Name"
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Our identifier as this shipping line knows us. Falls back to the Default Sender ID in ICD TZ Settings.",
+   "fieldname": "sender_id",
+   "fieldtype": "Data",
+   "label": "Sender ID"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_edi",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enable EDI"
+  },
+  {
+   "depends_on": "eval:doc.enable_edi==1",
+   "fieldname": "connection_section",
+   "fieldtype": "Section Break",
+   "label": "Delivery Channel"
+  },
+  {
+   "fieldname": "connection_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Connection Type",
+   "mandatory_depends_on": "eval:doc.enable_edi==1",
+   "options": "\nSFTP\nSMTP"
+  },
+  {
+   "fieldname": "column_break_channel",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.connection_type=='SFTP'",
+   "fieldname": "test_connection",
+   "fieldtype": "Button",
+   "label": "Test Connection"
+  },
+  {
+   "depends_on": "eval:doc.connection_type=='SFTP'",
+   "fieldname": "sftp_section",
+   "fieldtype": "Section Break",
+   "label": "SFTP Server"
+  },
+  {
+   "description": "Server URL or hostname",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "mandatory_depends_on": "eval:doc.connection_type=='SFTP'"
+  },
+  {
+   "default": "22",
+   "description": "Connection port, 22 for SFTP",
+   "fieldname": "port",
+   "fieldtype": "Int",
+   "label": "Port",
+   "mandatory_depends_on": "eval:doc.connection_type=='SFTP'"
+  },
+  {
+   "default": "/",
+   "description": "Remote directory the files are written to",
+   "fieldname": "directory",
+   "fieldtype": "Data",
+   "label": "Directory"
+  },
+  {
+   "fieldname": "column_break_sftp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "IP address behind the DNS, if applicable",
+   "fieldname": "ip_behind_dns",
+   "fieldtype": "Data",
+   "label": "IP Behind DNS"
+  },
+  {
+   "description": "Source IP the connection is bound to",
+   "fieldname": "source_ip",
+   "fieldtype": "Data",
+   "label": "Source IP"
+  },
+  {
+   "depends_on": "eval:doc.connection_type=='SFTP'",
+   "fieldname": "authentication_section",
+   "fieldtype": "Section Break",
+   "label": "Authentication"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Data",
+   "label": "User",
+   "mandatory_depends_on": "eval:doc.connection_type=='SFTP'"
+  },
+  {
+   "default": "Password",
+   "fieldname": "authentication_method",
+   "fieldtype": "Select",
+   "label": "Authentication Method",
+   "mandatory_depends_on": "eval:doc.connection_type=='SFTP'",
+   "options": "Password\nKey"
+  },
+  {
+   "fieldname": "column_break_auth",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.authentication_method=='Password'",
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "label": "Password",
+   "mandatory_depends_on": "eval:doc.authentication_method=='Password' && doc.connection_type=='SFTP'"
+  },
+  {
+   "depends_on": "eval:doc.authentication_method=='Key'",
+   "description": "Private key used for SSH/SFTP authentication",
+   "fieldname": "authentication_key",
+   "fieldtype": "Password",
+   "label": "Authentication Key",
+   "mandatory_depends_on": "eval:doc.authentication_method=='Key' && doc.connection_type=='SFTP'"
+  },
+  {
+   "depends_on": "eval:doc.connection_type=='SMTP'",
+   "fieldname": "smtp_section",
+   "fieldtype": "Section Break",
+   "label": "Email Recipients"
+  },
+  {
+   "fieldname": "receiver_email",
+   "fieldtype": "Data",
+   "label": "Receiver Email",
+   "mandatory_depends_on": "eval:doc.connection_type=='SMTP'",
+   "options": "Email"
+  },
+  {
+   "fieldname": "column_break_smtp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "receiver_cc_email",
+   "fieldtype": "Data",
+   "label": "Receiver CC Email",
+   "options": "Email"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-14 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Icd Tz",
+ "name": "EDI Partner",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "shipping_line_name",
+ "track_changes": 1
+}
