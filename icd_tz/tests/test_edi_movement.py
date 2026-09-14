@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import nowdate
+from frappe.utils import add_days, getdate, nowdate
 
 from icd_tz.icd_tz.api.edi.codeco import attach_gate_in, attach_gate_out
 from icd_tz.icd_tz.api.edi.movement import from_container_reception, from_gate_pass
@@ -16,7 +16,7 @@ M_BL_NO = "HLCUTYO250101920"
 
 class TestEDIMovement(FrappeTestCase):
 	def setUp(self):
-		frappe.db.set_single_value("ICD TZ Settings", "received_date_threshold_hours", 24)
+		frappe.db.set_single_value("ICD TZ Settings", "received_date_threshold_hours", 48)
 		frappe.db.set_single_value("ICD TZ Settings", "enable_edi", 1)
 		frappe.db.set_single_value("ICD TZ Settings", "icd_un_locode", "TZDAR")
 		frappe.db.delete("EDI Partner", {"shipping_line_code": "CMA"})
@@ -50,6 +50,17 @@ class TestEDIMovement(FrappeTestCase):
 		movement = from_container_reception(make_reception(freight_indicator="EMP"))
 
 		self.assertTrue(movement.is_empty)
+
+	def test_gate_in_is_dated_when_the_box_crossed_the_gate(self):
+		# received_date is derived from the storage threshold and falls back to the
+		# discharge date at the seaport, which is a different event days earlier
+		reception = make_reception(posting_date=nowdate(), ship_dc_date=add_days(nowdate(), -1))
+
+		self.assertNotEqual(reception.received_date, getdate(reception.posting_date))
+		self.assertEqual(
+			from_container_reception(reception).event_datetime,
+			f"{reception.posting_date} {reception.icd_time_in}",
+		)
 
 	def test_gate_in_carries_the_vessel_of_the_manifest(self):
 		movement = from_container_reception(make_reception())
@@ -236,6 +247,7 @@ def make_reception(**values):
 			"seal_no_1": "TW1234567",
 			"posting_date": nowdate(),
 			"ship_dc_date": nowdate(),
+			"icd_time_in": "22:55:00",
 			"port": "DP WORLD",
 			**values,
 		}
