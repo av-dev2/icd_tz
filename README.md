@@ -149,13 +149,13 @@ Suggested screenshots to add before publishing:
 | Container lifecycle view | To confirm |
 | Service Order and generated Sales Order | To confirm |
 | Gate Pass validation flow | To confirm |
-| EDI Settings | To confirm |
+| EDI Partner | To confirm |
 
 ## Demo Scenario
 
 A practical demo can be built around this flow:
 
-1. Configure ICD TZ Settings, service items, storage day rules, EDI Settings, and gate pass expiry hours.
+1. Configure ICD TZ Settings, service items, storage day rules, the EDI tab and its EDI Partner records, and gate pass expiry hours.
 2. Upload a sample manifest workbook and extract container, MBL, HBL, and consignee data.
 3. Create a Container Movement Order.
 4. Submit a Container Reception and confirm the container appears in the yard.
@@ -227,7 +227,7 @@ The Manifest DocType includes workbook extraction logic. A migration plan should
 
 ### Does it support EDI?
 
-Yes. The app includes CODECO gate-in / gate-out generation, COREOR generation, EDI Settings, and SFTP / SSH connection testing.
+Yes. The app generates CODECO D95B gate-in / gate-out messages, one per shipping line, addressed by the TANeSW shipping agent code held on an EDI Partner record, and can test an SFTP / SSH connection.
 
 ### What should we prepare before implementation?
 
@@ -244,7 +244,7 @@ Prepare ERPNext, ICD billing policies, master data, service items, price lists, 
 - ERPNext Sales Order and Sales Invoice integration with container references.
 - Gate Pass validation for pending storage, reception, booking, inspection, removal, and levy charges.
 - CODECO and COREOR EDI message generation.
-- EDI Settings with sender / receiver IDs, connection type, SFTP / SSH connection test, directory, email recipients, and enable flag.
+- EDI Partner records, one per shipping line, each with its shipping line code, sender ID, connection type, SFTP / SSH connection test, directory, email recipients, and enable flag.
 - ICD workspace, dashboard cards, number cards, dashboard charts, and script reports.
 - Install and migration hooks for custom fields, property setters, item groups, services, container states, and ICD settings defaults.
 
@@ -295,7 +295,7 @@ After installation, configure these areas before production use:
 | Configuration area | What to set |
 |---|---|
 | ICD TZ Settings | Default price list, storage day rules, service pricing criteria, LCL criteria, corridor levy countries, signature validation, gate pass expiry hours |
-| EDI Settings | URL, port, source IP, authentication method, password or key, directory, sender ID, receiver ID, enable EDI, connection type, receiver email and CC |
+| EDI Partner | Shipping line code and name, sender ID, enable EDI, connection type, URL, port, source IP, IP behind DNS, authentication method, password or key, directory, receiver email and CC |
 | Item Prices | Prices for the ICD service items created by patches |
 | Master data | Consignees, C&F companies, clearing agents, transporters, vehicles, drivers, security officers, locations, document types |
 | ERPNext selling setup | Customers, price list, taxes, accounts, currency, and invoice workflow |
@@ -317,7 +317,7 @@ Use the ICD workspace to access operational areas:
 | Man Power | Employee, Security Officer |
 | Condition and Location | Container State, Container Location |
 | Item and Prices | Item, Item Price |
-| Settings | ICD TZ Settings, EDI Settings, Document Type |
+| Settings | ICD TZ Settings, EDI Partner, Document Type |
 
 ## Modules and DocTypes
 
@@ -329,7 +329,7 @@ Use the ICD workspace to access operational areas:
 | Billing operations | Service Order, Service Order Detail, Container Service Detail, ICD TZ Service Detail, ICD TZ Loose Detail | Collect and generate billable ICD service lines |
 | Gate operations | Gate Pass | Control gate-out and container release |
 | Parties and people | Consignee, Clearing and Forwarding Company, Clearing Agent, Transporter, Security officer | Maintain operational counterparties and staff-facing records |
-| Settings and references | ICD TZ Settings, ICD TZ Settings Detail, EDI Settings, Document Type, Document Attachment, Corridor Levy Country | Configure service pricing, EDI, documents, attachments, and levy rules |
+| Settings and references | ICD TZ Settings, ICD TZ Settings Detail, EDI Partner, Document Type, Document Attachment, Corridor Levy Country | Configure service pricing, EDI, documents, attachments, and levy rules |
 
 Submittable operational DocTypes include Manifest, Container Movement Order, Container Reception, In Yard Container Booking, Container Inspection, Container Verification Movement, Service Order, and Gate Pass.
 
@@ -406,9 +406,9 @@ Whitelisted and callable methods include:
 
 | Method | Purpose |
 |---|---|
-| `icd_tz.icd_tz.api.edi_codeco.generate_codeco_gate_in` | Generate CODECO gate-in EDI file |
-| `icd_tz.icd_tz.api.edi_codeco.generate_codeco_gate_out` | Generate CODECO gate-out EDI file |
-| `icd_tz.icd_tz.api.edi_coreor.generate_coreor_edi` | Generate COREOR EDI file |
+| `icd_tz.icd_tz.api.edi.codeco.generate_codeco_gate_in` | Preview the CODECO gate-in message of a Container Reception |
+| `icd_tz.icd_tz.api.edi.codeco.generate_codeco_gate_out` | Preview the CODECO gate-out message of a Gate Pass |
+| `icd_tz.icd_tz.api.edi.coreor.generate_coreor_edi` | Generate a COREOR message (unused, pending the inbound parser) |
 | `icd_tz.icd_tz.api.sales_order.update_items_on_sales_order` | Rebuild Sales Order items from linked ICD service and storage logic |
 | `icd_tz.icd_tz.api.sales_order.make_sales_order` | Create Sales Order from ICD billing context |
 | `icd_tz.icd_tz.api.sales_order.create_sales_order` | Wrapper to create Sales Order from passed data |
@@ -417,7 +417,7 @@ Whitelisted and callable methods include:
 | `Container Inspection.create_bulk_inspections` | Create inspections in bulk |
 | `Container Movement Order.get_manifest_details` | Fetch manifest details for movement order flow |
 | `Container Reception.get_container_details` | Fetch container details from manifest and container number |
-| `EDI Settings.try_edi_connection` | Test configured SFTP / SSH connection |
+| `EDI Partner.try_edi_connection` | Test the SFTP / SSH connection of one shipping line |
 | `Gate Pass.create_getpass_for_empty_container` | Create a gate pass for an empty container |
 | `Gate Pass.auto_expire_gate_passes` | Auto-expire submitted gate passes past expiry time |
 | `In Yard Container Booking.create_bulk_bookings` | Create bookings in bulk |
@@ -502,7 +502,7 @@ icd_tz/
 2. Pull the target app branch.
 3. Run `bench --site your-site.local migrate`.
 4. Rebuild assets if client scripts or desk assets change.
-5. Review ICD TZ Settings, EDI Settings, custom fields, property setters, and service item mappings.
+5. Review ICD TZ Settings, EDI Partner records, custom fields, property setters, and service item mappings.
 6. Test manifest import, container reception, service order, invoice submit, and gate pass submission in staging.
 7. Confirm reports and dashboards still load.
 
@@ -534,12 +534,12 @@ Use this only after a backup and business approval.
 | Sales Order items are missing | Use the Sales Order update items action and confirm linked containers / service orders are submitted |
 | Sales Invoice does not update ICD records | Confirm invoice items contain container fields and service item codes match ICD TZ Settings |
 | Gate Pass cannot submit | Review pending storage, reception, booking, inspection, removal, and corridor levy invoices |
-| EDI file missing | Confirm EDI Settings, enable flag, connection type, sender ID, receiver ID, and generation errors |
+| EDI file missing | Confirm the ICD TZ Settings EDI tab is enabled, that an enabled EDI Partner exists for the container `sline_code`, and that the unit is a container rather than a vehicle, loose cargo or a house bill record |
 | Gate Pass auto-cancels | Check gate pass expiry hours and whether gate confirmation happened before expiry |
 
 ## Security
 
-- EDI Settings include passwords and authentication keys; restrict access to trusted administrators.
+- EDI Partner records hold passwords and private keys; restrict access to trusted administrators.
 - Review the SFTP / SSH host key policy and credential storage expectations before production use.
 - Gate Pass validation is business-critical; test payment and invoice edge cases before go-live.
 - Permissions should be reviewed because repository defaults are mostly System Manager-focused.
@@ -565,8 +565,10 @@ Use this only after a backup and business approval.
 | `icd_tz/icd_tz/doctype/gate_pass/gate_pass.py` | Validates pending payments, generates CODECO gate-out, updates status, auto-expires passes |
 | `icd_tz/icd_tz/api/sales_order.py` | Creates and updates Sales Orders based on storage and service logic |
 | `icd_tz/icd_tz/api/sales_invoice.py` | Updates ICD references when Sales Invoices are submitted |
-| `icd_tz/icd_tz/api/edi_codeco.py` | Generates CODECO D95B gate-in / gate-out messages |
-| `icd_tz/icd_tz/api/edi_coreor.py` | Generates COREOR D00B release-order messages |
+| `icd_tz/icd_tz/api/edi/codeco.py` | Builds and attaches CODECO D95B gate-in / gate-out messages |
+| `icd_tz/icd_tz/api/edi/movement.py` | Reads one gate movement from a Container Reception or a Gate Pass |
+| `icd_tz/icd_tz/api/edi/syntax.py` | UN/EDIFACT level A character handling and segment assembly |
+| `icd_tz/icd_tz/api/edi/coreor.py` | Generates COREOR D00B release orders (unused, pending the inbound parser) |
 | `icd_tz/icd_tz/doctype/edi_settings/*` | Stores EDI connection and sender / receiver configuration; tests SFTP / SSH connection |
 | `icd_tz/icd_tz/report/*` | Provides script reports for stock, movements, bookings, gate passes, loose cargo, and revenue |
 | `icd_tz/icd_tz/workspace/icd/icd.json` | Defines ICD workspace navigation |
