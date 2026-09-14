@@ -5,8 +5,9 @@
 EDI COREOR (Container Release Order) Message Generator
 Implementation Guide based on UN/EDIFACT D00B Version
 
-COREOR is used to communicate container release orders from the terminal
-to the shipping line or freight forwarder.
+NOTE: a release order travels from the shipping line to the depot, so an ICD
+receives COREOR rather than sending it. Nothing calls this generator; it is
+kept until the inbound parser that replaces it is written.
 
 Segment Structure:
 - UNB: Interchange Header
@@ -126,24 +127,14 @@ class COREORGenerator:
 		return "22G1"
 
 	def _get_sender_id(self):
-		"""Get the sender ID from EDI Settings"""
-		try:
-			edi_settings = frappe.get_single("EDI Settings")
-			if edi_settings.sender_id:
-				return edi_settings.sender_id
-		except Exception:
-			pass
-		return "ICD"
+		"""Our own identifier, taken from ICD TZ Settings"""
+
+		return frappe.db.get_single_value("ICD TZ Settings", "default_sender_id") or "ICD"
 
 	def _get_receiver_id(self):
-		"""Get the receiver ID from EDI Settings"""
-		try:
-			edi_settings = frappe.get_single("EDI Settings")
-			if edi_settings.receiver_id:
-				return edi_settings.receiver_id
-		except Exception:
-			pass
-		return "TZDARDSEL"
+		"""Release orders are addressed to this ICD, so the facility code identifies the recipient"""
+
+		return frappe.db.get_single_value("ICD TZ Settings", "icd_facility_code") or "TZDARDSEL"
 
 	def _add_segment(self, segment):
 		"""Add a segment to the message"""
@@ -545,7 +536,11 @@ class COREORGenerator:
 
 
 @frappe.whitelist()
-def generate_coreor_edi(container_reception=None, container_movement_order=None, message_function="original"):
+def generate_coreor_edi(
+	container_reception: str | None = None,
+	container_movement_order: str | None = None,
+	message_function: str = "original",
+):
 	"""
 	API method to generate COREOR EDI message.
 
@@ -557,6 +552,13 @@ def generate_coreor_edi(container_reception=None, container_movement_order=None,
 	Returns:
 	    dict: Contains 'edi_content' and 'filename'
 	"""
+	if container_reception:
+		frappe.get_doc("Container Reception", container_reception).check_permission("read")
+	elif container_movement_order:
+		frappe.get_doc("Container Movement Order", container_movement_order).check_permission("read")
+	else:
+		frappe.throw("Please give either a Container Reception or a Container Movement Order")
+
 	generator = COREORGenerator(
 		container_reception=container_reception, container_movement_order=container_movement_order
 	)
