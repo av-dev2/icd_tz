@@ -4,6 +4,7 @@ import frappe
 from frappe import _
 from frappe.utils import nowdate
 
+from icd_tz.icd_tz.api.accounting_dimensions import get_container_dimensions
 from icd_tz.icd_tz.api.contract import get_selling_price_list, get_storage_day_counts
 from icd_tz.icd_tz.api.utils import validate_qty_storage_item
 from icd_tz.icd_tz.doctype.waiver_request.waiver_request import apply_approved_waiver
@@ -171,6 +172,17 @@ def make_sales_order(
 	return sales_order.name
 
 
+def get_container_refs(container_doc) -> dict:
+	"""Container identity and accounting dimensions carried by every charge row"""
+
+	return {
+		"container_no": container_doc.container_no,
+		"container_id": container_doc.name,
+		"manifest": container_doc.manifest,
+		**get_container_dimensions(container_doc),
+	}
+
+
 def get_storage_services(m_bl_no=None, h_bl_no=None):
 	if not m_bl_no and not h_bl_no:
 		frappe.throw(_("Please enter either M BL No or H BL No"))
@@ -237,10 +249,8 @@ def get_storage_services(m_bl_no=None, h_bl_no=None):
 					"qty": len(single_days) * container_doc.gross_volume
 					if container_doc.freight_indicator == "LCL"
 					else len(single_days),
-					"container_no": container_doc.container_no,
-					"container_id": container_doc.name,
-					"manifest": container_doc.manifest,
 					"container_child_refs": ",".join(single_days),
+					**get_container_refs(container_doc),
 				}
 
 				services.append(new_row)
@@ -279,10 +289,8 @@ def get_storage_services(m_bl_no=None, h_bl_no=None):
 					"qty": len(double_days) * container_doc.gross_volume
 					if container_doc.freight_indicator == "LCL"
 					else len(double_days),
-					"container_no": container_doc.container_no,
-					"container_id": container_doc.name,
-					"manifest": container_doc.manifest,
 					"container_child_refs": ",".join(double_days),
+					**get_container_refs(container_doc),
 				}
 
 				services.append(new_row)
@@ -318,9 +326,7 @@ def get_storage_services(m_bl_no=None, h_bl_no=None):
 				{
 					"item_code": removal_item,
 					"qty": container_doc.gross_volume if container_doc.freight_indicator == "LCL" else 1,
-					"container_no": container_doc.container_no,
-					"container_id": container_doc.name,
-					"manifest": container_doc.manifest,
+					**get_container_refs(container_doc),
 				}
 			)
 
@@ -339,9 +345,7 @@ def get_gatepass_cancellation_service(container_doc, settings_doc):
 	return {
 		"item_code": settings_doc.gatepass_cancellation_item,
 		"qty": 1,
-		"container_no": container_doc.container_no,
-		"container_id": container_doc.name,
-		"manifest": container_doc.manifest,
+		**get_container_refs(container_doc),
 	}
 
 
@@ -445,6 +449,7 @@ def get_items(doc):
 			"container_no": doc.container_no,
 			"container_id": doc.container_id,
 			"manifest": doc.manifest,
+			**get_container_dimensions(doc),
 		}
 		items.append(row_item)
 

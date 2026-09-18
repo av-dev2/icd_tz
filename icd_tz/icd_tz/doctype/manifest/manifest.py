@@ -9,6 +9,13 @@ from frappe.model.document import Document
 from frappe.utils import escape_html
 from openpyxl import load_workbook
 
+from icd_tz.icd_tz.api.accounting_dimensions import (
+	create_dimension_records,
+	revoke_consignees,
+	revoke_dimension_records,
+	validate_manifest_not_in_accounts,
+)
+
 
 def get_sheet(workbook, seq_no):
 	suffix = f"({seq_no})"
@@ -42,6 +49,14 @@ class Manifest(Document):
 
 	def on_submit(self):
 		self.create_consignees()
+		create_dimension_records(self)
+
+	def before_cancel(self):
+		validate_manifest_not_in_accounts(self.name)
+
+	def on_cancel(self):
+		revoke_dimension_records(self.name)
+		revoke_consignees(self)
 
 	def on_trash(self):
 		if self.manifest:
