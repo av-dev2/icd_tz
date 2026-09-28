@@ -57,15 +57,14 @@ class GatePass(Document):
 	def validate_pending_payments(self):
 		"""Validate the pending payments for the Gate Pass"""
 
-		if self.is_empty_container == 1:
-			return
-
-		charges = [
-			self.validate_container_charges(),
-			self.validate_in_yard_booking(),
-			self.validate_reception_charges(),
-			self.validate_inspection_charges(),
-		]
+		charges = [self.validate_storage_charges()]
+		if not self.is_empty_container:
+			charges += [
+				self.validate_container_charges(),
+				self.validate_in_yard_booking(),
+				self.validate_reception_charges(),
+				self.validate_inspection_charges(),
+			]
 
 		service_msg = ""
 		invoices = []
@@ -150,14 +149,27 @@ class GatePass(Document):
 			as_dict=True,
 		)
 
+	def validate_storage_charges(self):
+		"""Validate the storage days for the Gate Pass and return their linked invoices"""
+
+		msg = ""
+		days_to_be_billed = self.container_charges.days_to_be_billed
+		if days_to_be_billed > 0:
+			msg = f"<li>Storage Charges:  <b>{days_to_be_billed} Days</b></li>"
+
+		invoices = frappe.db.get_all(
+			"Container Service Detail",
+			filters={"parent": self.container_id, "parenttype": "Container"},
+			pluck="sales_invoice",
+		)
+
+		return msg, invoices
+
 	def validate_container_charges(self):
-		"""Validate the storage payments for the Gate Pass and return its linked invoices"""
+		"""Validate the removal, corridor levy and cancellation payments and return their linked invoices"""
 
 		msg = ""
 		container = self.container_charges
-
-		if container.days_to_be_billed > 0:
-			msg += f"<li>Storage Charges:  <b>{container.days_to_be_billed} Days</b></li>"
 
 		if container.has_removal_charges and not container.r_sales_invoice:
 			msg += "<li>Removal Charges</li>"
@@ -168,16 +180,7 @@ class GatePass(Document):
 		if container.has_cancellation_charge == 1 and not container.g_sales_invoice:
 			msg += "<li>Gate Pass Cancellation Charges</li>"
 
-		invoices = [container.r_sales_invoice, container.c_sales_invoice, container.g_sales_invoice]
-		invoices.extend(
-			frappe.db.get_all(
-				"Container Service Detail",
-				filters={"parent": self.container_id, "parenttype": "Container"},
-				pluck="sales_invoice",
-			)
-		)
-
-		return msg, invoices
+		return msg, [container.r_sales_invoice, container.c_sales_invoice, container.g_sales_invoice]
 
 	def validate_in_yard_booking(self):
 		"""Validate the stripping and custom verification payments and return their linked invoices"""
