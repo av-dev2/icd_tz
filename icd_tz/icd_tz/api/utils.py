@@ -1,6 +1,7 @@
 import re
 
 import frappe
+from frappe import _
 from frappe.utils import cint, nowdate
 
 # Containers on these statuses are leaving or have left the ICD
@@ -306,8 +307,16 @@ def submit_doc(doc_type, doc_name):
 
 
 def get_default_customer_group():
-	""" "All Customer Groups" is always a group node, ERPNext rejects it as a Customer's group"""
+	"""Non-group customer group from Selling Settings, else the first non-group Customer Group"""
 
-	return frappe.db.get_single_value("Selling Settings", "customer_group") or frappe.db.get_value(
-		"Customer Group", {"is_group": 0}, "name"
-	)
+	customer_group = frappe.db.get_single_value("Selling Settings", "customer_group")
+	if customer_group and not frappe.db.get_value("Customer Group", customer_group, "is_group"):
+		return customer_group
+
+	customer_group = frappe.db.get_value("Customer Group", {"is_group": 0}, "name", order_by="lft asc")
+	if not customer_group:
+		frappe.throw(
+			_("Set a default Customer Group in Selling Settings or create a non-group Customer Group")
+		)
+
+	return customer_group
