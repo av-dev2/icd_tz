@@ -235,7 +235,9 @@ class TestGatePassIncomeCharges(FrappeTestCase):
 		self.assertIn("Transport Charges", msg)
 
 	def test_a_container_without_reception_is_still_checked(self):
-		container = make_container(cargo_type="Local", has_shore_handling_charges=1)
+		container = insert(
+			"Container", container_no="INCU1234567", cargo_type="Local", has_shore_handling_charges=1
+		)
 
 		msg, _ = make_gate_pass(container).validate_reception_charges()
 
