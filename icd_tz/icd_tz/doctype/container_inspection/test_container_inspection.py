@@ -13,6 +13,7 @@ from icd_tz.icd_tz.doctype.in_yard_container_booking.in_yard_container_booking i
 	create_additional_booking,
 )
 from icd_tz.tests.test_container_income_refs import insert
+from icd_tz.tests.test_edi_codeco import make_partner
 from icd_tz.tests.test_edi_movement import CONTAINER_NO, M_BL_NO, make_manifest, make_reception
 from icd_tz.tests.test_port_expense_settings import make_item
 from icd_tz.tests.test_storage_contract import set_settings_storage_days
@@ -134,6 +135,15 @@ class TestInspectionLCLChange(IntegrationTestCase):
 		self.assertEqual(len(unpacking.hbls), 1)
 		self.assertEqual(unpacking.hbls[0].container_id, self.box)
 		self.assertEqual(unpacking.hbls[0].counted_packages, 40)
+
+	def test_the_unpacking_is_timed_so_its_costco_goes_out(self):
+		frappe.db.set_single_value("ICD TZ Settings", "enable_edi", 1)
+		make_partner()
+
+		unpacking = get_unpacking(inspect_container(self.box))
+
+		self.assertTrue(unpacking.end_time)
+		self.assertTrue(unpacking.edi_file)
 
 	def test_the_box_becomes_the_cargo_record_under_an_icd_house_bill(self):
 		inspect_container(self.box)
