@@ -8,7 +8,7 @@ from icd_tz.icd_tz.doctype.container.container import get_place_of_destination
 from icd_tz.tests.utils import create_icd_tz_settings
 
 
-class TestICDTZSettings(IntegrationTestCase):
+class TestICDSetting(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
