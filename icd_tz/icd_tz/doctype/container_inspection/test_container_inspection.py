@@ -22,6 +22,7 @@ from icd_tz.tests.utils import (
 	create_container_location,
 	create_icd_tz_settings,
 	create_inspection,
+	set_test_icd_setting,
 )
 
 test_ignore = ["Company", "Cost Center"]
@@ -115,7 +116,7 @@ class TestInspectionLCLChange(IntegrationTestCase):
 	"""An FCL box changed to LCL at its inspection becomes the cargo's HBL record and a new empty box"""
 
 	def setUp(self):
-		frappe.db.set_single_value("ICD TZ Settings", "received_date_threshold_hours", 48)
+		set_test_icd_setting({"received_date_threshold_hours": 48})
 		set_settings_storage_days()
 		make_item(SERVICE)
 		make_manifest()
@@ -137,7 +138,7 @@ class TestInspectionLCLChange(IntegrationTestCase):
 		self.assertEqual(unpacking.hbls[0].counted_packages, 40)
 
 	def test_the_unpacking_is_timed_so_its_costco_goes_out(self):
-		frappe.db.set_single_value("ICD TZ Settings", "enable_edi", 1)
+		set_test_icd_setting({"enable_edi": 1})
 		make_partner()
 
 		unpacking = get_unpacking(inspect_container(self.box))
