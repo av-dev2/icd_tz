@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from icd_tz.tests.utils import create_manifest, get_default_company
+from icd_tz.tests.utils import create_manifest, get_test_company
 
 
 class TestManifest(IntegrationTestCase):
@@ -12,7 +12,7 @@ class TestManifest(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_a_manifest_without_a_file_is_rejected(self):
-		manifest = frappe.get_doc({"doctype": "Manifest", "company": get_default_company()})
+		manifest = frappe.get_doc({"doctype": "Manifest", "company": get_test_company()})
 		self.assertRaises(frappe.ValidationError, manifest.insert)
 
 	def test_the_manifest_file_cannot_be_removed_later(self):

@@ -1,6 +1,8 @@
 # Copyright (c) 2026, elius mgani and Contributors
 # See license.txt
 
+import sys
+from contextlib import ExitStack, contextmanager
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -8,14 +10,14 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from icd_tz.icd_tz.api.sales_invoice import update_sales_references
+from icd_tz.icd_tz.api.utils import get_icd_setting
 from icd_tz.tests.test_lcl_gross_volume import make_service_order
 from icd_tz.tests.test_service_criteria import criteria, settings
+from icd_tz.tests.utils import get_test_company
 
 test_ignore = ["Company", "Cost Center"]
 
 RECEPTION = "_T-INCOME-REC"
-
-GET_CACHED_DOC = frappe.get_cached_doc
 
 
 def insert(doctype, **values):
@@ -31,8 +33,16 @@ def make_reception_containers(**reception_values):
 	"""An MBL container and its HBL container, both created from one reception"""
 
 	insert("Container Reception", name=RECEPTION, docstatus=1, **reception_values)
-	mbl = insert("Container", container_no="INCU1234567", container_reception=RECEPTION)
-	hbl = insert("Container", container_no="INCU1234567", container_reception=RECEPTION, has_hbl=1)
+	mbl = insert(
+		"Container", company=get_test_company(), container_no="INCU1234567", container_reception=RECEPTION
+	)
+	hbl = insert(
+		"Container",
+		company=get_test_company(),
+		container_no="INCU1234567",
+		container_reception=RECEPTION,
+		has_hbl=1,
+	)
 	return mbl.name, hbl.name
 
 
@@ -40,6 +50,7 @@ def make_gate_pass(container, **values):
 	return frappe.get_doc(
 		{
 			"doctype": "Gate Pass",
+			"company": get_test_company(),
 			"container_id": container.name,
 			"container_no": container.container_no,
 			**values,
@@ -58,15 +69,24 @@ def income_settings():
 	return frappe._dict(settings(service_rows), gatepass_cancellation_item=None)
 
 
+def get_setting_readers() -> list[str]:
+	"""Every loaded app module that reads the ICD Setting, so a new reader is served the test doc too"""
+
+	return [
+		name
+		for name, module in list(sys.modules.items())
+		if name.startswith("icd_tz.") and getattr(module, "get_icd_setting", None) is get_icd_setting
+	]
+
+
+@contextmanager
 def with_settings(settings_doc):
-	"""Serve the test ICD TZ Settings, every other cached doc stays real"""
+	"""Serve the test ICD Setting to every reader on the billing path"""
 
-	def get_cached_doc(doctype, *args, **kwargs):
-		if doctype == "ICD TZ Settings":
-			return settings_doc
-		return GET_CACHED_DOC(doctype, *args, **kwargs)
-
-	return patch("frappe.get_cached_doc", side_effect=get_cached_doc)
+	with ExitStack() as stack:
+		for module in get_setting_readers():
+			stack.enter_context(patch(f"{module}.get_icd_setting", return_value=settings_doc))
+		yield
 
 
 def submit_invoice(
@@ -74,6 +94,7 @@ def submit_invoice(
 ):
 	invoice = SimpleNamespace(
 		name=name,
+		company="_T-Company",
 		m_bl_no="MBL-1",
 		h_bl_no=None,
 		is_return=is_return,
@@ -236,7 +257,11 @@ class TestGatePassIncomeCharges(FrappeTestCase):
 
 	def test_a_container_without_reception_is_still_checked(self):
 		container = insert(
-			"Container", container_no="INCU1234567", cargo_type="Local", has_shore_handling_charges=1
+			"Container",
+			company=get_test_company(),
+			container_no="INCU1234567",
+			cargo_type="Local",
+			has_shore_handling_charges=1,
 		)
 
 		msg, _ = make_gate_pass(container).validate_reception_charges()
