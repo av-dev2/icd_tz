@@ -155,6 +155,7 @@ SERVICE_TYPES = (
 	"Removal",
 	"Transport",
 	"Shore",
+	"ICD Handling",
 	"Levy",
 )
 
@@ -180,21 +181,24 @@ def create_icd_tz_settings():
 				"storage_days", {"destination": destination, "from": 15, "to": 30, "charge": "Double"}
 			)
 
-	if not settings.service_types:
+	set_service_types = {row.service_type for row in settings.service_types}
+	for service_type in SERVICE_TYPES:
+		if service_type in set_service_types:
+			continue
+
 		for size in ("20ft", "40ft"):
 			for cargo_type in ("Local", "Transit"):
 				for port in ("DP WORLD", "TEAGTL"):
-					for service_type in SERVICE_TYPES:
-						settings.append(
-							"service_types",
-							{
-								"service_type": service_type,
-								"service_name": create_service_item(f"ICD Test {service_type} {size}"),
-								"size": size,
-								"cargo_type": cargo_type,
-								"port": port,
-							},
-						)
+					settings.append(
+						"service_types",
+						{
+							"service_type": service_type,
+							"service_name": create_service_item(f"ICD Test {service_type} {size}"),
+							"size": size,
+							"cargo_type": cargo_type,
+							"port": port,
+						},
+					)
 
 	if not settings.loose_types:
 		for service_type in SERVICE_TYPES:
