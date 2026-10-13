@@ -13,6 +13,7 @@ from icd_tz.icd_tz.api.sales_invoice import update_sales_references
 from icd_tz.icd_tz.api.utils import get_icd_setting
 from icd_tz.tests.test_lcl_gross_volume import make_service_order
 from icd_tz.tests.test_service_criteria import criteria, settings
+from icd_tz.tests.utils import get_test_company
 
 test_ignore = ["Company", "Cost Center"]
 
@@ -32,8 +33,16 @@ def make_reception_containers(**reception_values):
 	"""An MBL container and its HBL container, both created from one reception"""
 
 	insert("Container Reception", name=RECEPTION, docstatus=1, **reception_values)
-	mbl = insert("Container", container_no="INCU1234567", container_reception=RECEPTION)
-	hbl = insert("Container", container_no="INCU1234567", container_reception=RECEPTION, has_hbl=1)
+	mbl = insert(
+		"Container", company=get_test_company(), container_no="INCU1234567", container_reception=RECEPTION
+	)
+	hbl = insert(
+		"Container",
+		company=get_test_company(),
+		container_no="INCU1234567",
+		container_reception=RECEPTION,
+		has_hbl=1,
+	)
 	return mbl.name, hbl.name
 
 
@@ -41,6 +50,7 @@ def make_gate_pass(container, **values):
 	return frappe.get_doc(
 		{
 			"doctype": "Gate Pass",
+			"company": get_test_company(),
 			"container_id": container.name,
 			"container_no": container.container_no,
 			**values,
@@ -247,7 +257,11 @@ class TestGatePassIncomeCharges(FrappeTestCase):
 
 	def test_a_container_without_reception_is_still_checked(self):
 		container = insert(
-			"Container", container_no="INCU1234567", cargo_type="Local", has_shore_handling_charges=1
+			"Container",
+			company=get_test_company(),
+			container_no="INCU1234567",
+			cargo_type="Local",
+			has_shore_handling_charges=1,
 		)
 
 		msg, _ = make_gate_pass(container).validate_reception_charges()
